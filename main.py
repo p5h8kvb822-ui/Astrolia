@@ -148,7 +148,9 @@ def modeles_decouverts():
     r = requests.get("https://generativelanguage.googleapis.com/v1beta/models",
                      headers={"x-goog-api-key": os.environ["GEMINI_API_KEY"]},
                      params={"pageSize": 200}, timeout=60)
-    r.raise_for_status()
+    if not r.ok:
+        print(f"Liste des modèles refusée ({r.status_code}) : {r.text[:400]}")
+        return []
     noms = [m["name"].removeprefix("models/") for m in r.json().get("models", [])
             if "generateContent" in m.get("supportedGenerationMethods", [])]
     flash = [n for n in noms if "flash" in n and not any(x in n for x in ("image", "tts", "live", "audio", "preview-"))]
@@ -156,11 +158,15 @@ def modeles_decouverts():
 
 
 def appeler_gemini(prompt):
-    """Essaie plusieurs modèles : si l'un n'existe plus (404) ou est saturé (429), passe au suivant."""
+    """Essaie plusieurs modèles : si l'un est introuvable (404), interdit (403) ou saturé (429), passe au suivant."""
     global _modele_ok
     force = os.getenv("LLM_MODEL")
-    candidats = [force] if force else ([_modele_ok] if _modele_ok else MODELES_GEMINI)
+    if _modele_ok:
+        candidats = [_modele_ok]
+    else:
+        candidats = ([force] if force else []) + [m for m in MODELES_GEMINI if m != force]
     deja_decouvert = False
+    derniere = ""
     i = 0
     while i < len(candidats):
         modele = candidats[i]
@@ -171,18 +177,20 @@ def appeler_gemini(prompt):
             json={"contents": [{"parts": [{"text": prompt}]}],
                   "generationConfig": {"responseMimeType": "application/json", "temperature": 0.9}},
             timeout=120)
-        if r.status_code in (404, 429):
-            print(f"Modèle {modele} indisponible ({r.status_code}), on essaie le suivant.")
-            if i >= len(candidats) and not deja_decouvert and not force:
+        if r.status_code in (403, 404, 429):
+            derniere = f"{modele} -> {r.status_code} : {r.text[:400]}"
+            print(f"Modèle {modele} indisponible. Réponse de Google : {r.status_code} {r.text[:400]}")
+            if i >= len(candidats) and not deja_decouvert:
                 deja_decouvert = True
                 candidats += [m for m in modeles_decouverts() if m not in candidats]
-                print("Modèles trouvés pour ta clé :", candidats)
+                print("Modèles à essayer :", candidats)
             continue
-        r.raise_for_status()
+        if not r.ok:
+            raise RuntimeError(f"Gemini {r.status_code} : {r.text[:400]}")
         _modele_ok = modele
         print(f"Modèle utilisé : {modele}")
         return r.json()["candidates"][0]["content"]["parts"][0]["text"]
-    raise RuntimeError("Aucun modèle Gemini disponible pour cette clé (voir le journal ci-dessus).")
+    raise RuntimeError(f"Aucun modèle Gemini utilisable. Dernière réponse de Google : {derniere}")
 
 
 def appeler_ia(prompt):
