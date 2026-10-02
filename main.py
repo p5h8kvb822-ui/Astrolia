@@ -139,6 +139,52 @@ def contexte_astral(d):
 # --------------------------------------------------------------------------
 # Génération du texte (Gemini gratuit par défaut, Claude en option)
 # --------------------------------------------------------------------------
+MODELES_GEMINI = ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash"]
+_modele_ok = None
+
+
+def modeles_decouverts():
+    """Demande à Google la liste des modèles « flash » disponibles pour ta clé."""
+    r = requests.get("https://generativelanguage.googleapis.com/v1beta/models",
+                     headers={"x-goog-api-key": os.environ["GEMINI_API_KEY"]},
+                     params={"pageSize": 200}, timeout=60)
+    r.raise_for_status()
+    noms = [m["name"].removeprefix("models/") for m in r.json().get("models", [])
+            if "generateContent" in m.get("supportedGenerationMethods", [])]
+    flash = [n for n in noms if "flash" in n and not any(x in n for x in ("image", "tts", "live", "audio", "preview-"))]
+    return sorted(flash, reverse=True)
+
+
+def appeler_gemini(prompt):
+    """Essaie plusieurs modèles : si l'un n'existe plus (404) ou est saturé (429), passe au suivant."""
+    global _modele_ok
+    force = os.getenv("LLM_MODEL")
+    candidats = [force] if force else ([_modele_ok] if _modele_ok else MODELES_GEMINI)
+    deja_decouvert = False
+    i = 0
+    while i < len(candidats):
+        modele = candidats[i]
+        i += 1
+        r = requests.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{modele}:generateContent",
+            headers={"x-goog-api-key": os.environ["GEMINI_API_KEY"]},
+            json={"contents": [{"parts": [{"text": prompt}]}],
+                  "generationConfig": {"responseMimeType": "application/json", "temperature": 0.9}},
+            timeout=120)
+        if r.status_code in (404, 429):
+            print(f"Modèle {modele} indisponible ({r.status_code}), on essaie le suivant.")
+            if i >= len(candidats) and not deja_decouvert and not force:
+                deja_decouvert = True
+                candidats += [m for m in modeles_decouverts() if m not in candidats]
+                print("Modèles trouvés pour ta clé :", candidats)
+            continue
+        r.raise_for_status()
+        _modele_ok = modele
+        print(f"Modèle utilisé : {modele}")
+        return r.json()["candidates"][0]["content"]["parts"][0]["text"]
+    raise RuntimeError("Aucun modèle Gemini disponible pour cette clé (voir le journal ci-dessus).")
+
+
 def appeler_ia(prompt):
     fournisseur = os.getenv("LLM_PROVIDER", "gemini")
     if fournisseur == "claude":
@@ -153,15 +199,7 @@ def appeler_ia(prompt):
         r.raise_for_status()
         texte = r.json()["content"][0]["text"]
     else:
-        modele = os.getenv("LLM_MODEL", "gemini-2.5-flash")
-        r = requests.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/{modele}:generateContent",
-            headers={"x-goog-api-key": os.environ["GEMINI_API_KEY"]},
-            json={"contents": [{"parts": [{"text": prompt}]}],
-                  "generationConfig": {"responseMimeType": "application/json", "temperature": 0.9}},
-            timeout=120)
-        r.raise_for_status()
-        texte = r.json()["candidates"][0]["content"]["parts"][0]["text"]
+        texte = appeler_gemini(prompt)
     texte = texte.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
     return json.loads(texte)
 
