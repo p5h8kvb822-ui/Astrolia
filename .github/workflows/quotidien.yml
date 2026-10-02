@@ -20,6 +20,7 @@ jobs:
       IG_USER_ID: ${{ secrets.IG_USER_ID }}
       IG_TOKEN: ${{ secrets.IG_TOKEN }}
       DRY_RUN: ${{ github.event.inputs.dry_run }}
+      LLM_MODEL: gemini-3.6-flash
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
