@@ -1,0 +1,20 @@
+name: Astrolia - renouvellement du jeton
+
+on:
+  schedule:
+    - cron: "0 8 1,20 * *"
+  workflow_dispatch:
+
+jobs:
+  jeton:
+    runs-on: ubuntu-latest
+    env:
+      IG_TOKEN: ${{ secrets.IG_TOKEN }}
+      GH_PAT: ${{ secrets.GH_PAT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - run: python main.py rafraichir
