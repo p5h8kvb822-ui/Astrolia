@@ -139,7 +139,11 @@ def contexte_astral(d):
 # --------------------------------------------------------------------------
 # Génération du texte (Gemini gratuit par défaut, Claude en option)
 # --------------------------------------------------------------------------
-MODELES_GEMINI = ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash"]
+MODELES_GEMINI = ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-2.5-flash"]
+
+
+class AucunModele(Exception):
+    """Aucun modèle Gemini utilisable : inutile de réessayer."""
 _modele_ok = None
 
 
@@ -157,6 +161,13 @@ def modeles_decouverts():
     return sorted(flash, reverse=True)
 
 
+def message_google(r):
+    try:
+        return r.json()["error"]["message"][:160]
+    except Exception:
+        return r.text[:160].replace("\n", " ")
+
+
 def appeler_gemini(prompt):
     """Essaie plusieurs modèles : si l'un est introuvable (404), interdit (403) ou saturé (429), passe au suivant."""
     global _modele_ok
@@ -166,7 +177,7 @@ def appeler_gemini(prompt):
     else:
         candidats = ([force] if force else []) + [m for m in MODELES_GEMINI if m != force]
     deja_decouvert = False
-    derniere = ""
+    bilan = []
     i = 0
     while i < len(candidats):
         modele = candidats[i]
@@ -178,19 +189,17 @@ def appeler_gemini(prompt):
                   "generationConfig": {"responseMimeType": "application/json", "temperature": 0.9}},
             timeout=120)
         if r.status_code in (403, 404, 429):
-            derniere = f"{modele} -> {r.status_code} : {r.text[:400]}"
-            print(f"Modèle {modele} indisponible. Réponse de Google : {r.status_code} {r.text[:400]}")
+            bilan.append(f"{modele} -> {r.status_code} : {message_google(r)}")
             if i >= len(candidats) and not deja_decouvert:
                 deja_decouvert = True
                 candidats += [m for m in modeles_decouverts() if m not in candidats]
-                print("Modèles à essayer :", candidats)
             continue
         if not r.ok:
             raise RuntimeError(f"Gemini {r.status_code} : {r.text[:400]}")
         _modele_ok = modele
         print(f"Modèle utilisé : {modele}")
         return r.json()["candidates"][0]["content"]["parts"][0]["text"]
-    raise RuntimeError(f"Aucun modèle Gemini utilisable. Dernière réponse de Google : {derniere}")
+    raise AucunModele("BILAN DES MODELES GEMINI :\n" + "\n".join(bilan))
 
 
 def appeler_ia(prompt):
@@ -237,6 +246,8 @@ def generer_texte(d):
             data = appeler_ia(prompt)
             valider(data)
             return data
+        except AucunModele:
+            raise
         except Exception as e:  # on relance la génération
             derniere_erreur = e
             print(f"Essai {essai} refusé : {e}")
