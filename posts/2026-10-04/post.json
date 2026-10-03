@@ -1,0 +1,117 @@
+{
+  "hook_couverture": "Balance, Scorpion et Poissons : on sent vos vibrations aujourd’hui",
+  "signe_star": "Balance",
+  "cta_commentaire": "Quel est ton mot-clé pour équilibrer ta semaine ?",
+  "legende_post": "La Lune en Cancer nous rappelle que les émotions sont nos guides. Et toi, quel signe résonne le plus avec ton énergie aujourd’hui ? #AstroliaDaily #BalanceVibes #LuneEnCancer",
+  "signes": [
+    {
+      "signe": "Bélier",
+      "accroche": "Ton feu couve des projets",
+      "texte": "L’énergie Balance te pousse à concrétiser tes idées. Fais confiance à ton instinct, même si c’est impulsif. Ce n’est pas le moment de tergiverser.",
+      "amour": "Ton partenaire sent ton enthousiasme, mais évite les promesses trop rapides.",
+      "travail": "Un nouveau départ professionnel se dessine, mais il faut agir sans attendre.",
+      "mantra": "Agis maintenant, réfléchiras après.",
+      "note": 4
+    },
+    {
+      "signe": "Taureau",
+      "accroche": "Ton cœur a besoin de douceur",
+      "texte": "La Lune en Cancer te rappelle de nourrir tes émotions. Offre-toi un moment de réconfort, comme un bon repas ou une balade. Ta sensibilité est une force aujourd’hui.",
+      "amour": "Un geste tendre peut tout changer dans ta relation actuelle.",
+      "travail": "Stabilise tes bases avant de viser plus haut, ton endurance sera récompensée.",
+      "mantra": "J’aime ce que je crée.",
+      "note": 3
+    },
+    {
+      "signe": "Gémeaux",
+      "accroche": "Tes mots ont du poids",
+      "texte": "Balance t’invite à clarifier tes idées. Évite les discussions superficiales : concentre-toi sur ce qui compte vraiment. Ta communication sera claire et percutante.",
+      "amour": "Un échange sincère peut éclaircir les malentendus entre vous deux.",
+      "travail": "Présente tes projets avec précision, les détails feront la différence.",
+      "mantra": "Parle avec légèreté, agis avec force.",
+      "note": 5
+    },
+    {
+      "signe": "Cancer",
+      "accroche": "Ton foyer brille comme jamais",
+      "texte": "La Lune chez toi ? C’est l’heure de protéger ce qui compte. Prends soin de ta famille ou de ton cercle proche. Les souvenirs d’enfance ou les traditions peuvent t’inspirer.",
+      "amour": "Ton partenaire se sent en sécurité quand tu es présent·e.",
+      "travail": "Un projet lié à la maison ou aux émotions peut enfin avancer.",
+      "mantra": "Mon nid est mon refuge.",
+      "note": 4
+    },
+    {
+      "signe": "Lion",
+      "accroche": "Ton charisme éclate aujourd’hui",
+      "texte": "Balance t’offre une scène pour briller. Assume ta personnalité sans complexe, mais reste ouvert·e aux retours. Les compliments pleuveront si tu oses te montrer.",
+      "amour": "Ton assurance séduit, mais écoute aussi les besoins de l’autre.",
+      "travail": "Une opportunité de leadership se profile, mais joue la modestie.",
+      "mantra": "Je rayonne, je suis vu.",
+      "note": 5
+    },
+    {
+      "signe": "Vierge",
+      "accroche": "Tes détails sauvent la mise",
+      "texte": "Ta précision est une bénédiction. Balance te demande de voir le grand tableau, mais c’est toi qui fais tout tenir. Organise-toi pour éviter le stress inutile.",
+      "amour": "Un petit geste pratique peut émerveiller ton·ta partenaire.",
+      "travail": "Les préparatifs d’un projet sont en train de porter leurs fruits.",
+      "mantra": "Je détache les fils invisibles.",
+      "note": 4
+    },
+    {
+      "signe": "Balance",
+      "accroche": "Ton équilibre est ta superpuissance",
+      "texte": "Aujourd’hui, tu es l’architecte de l’harmonie. Choisis entre deux options avec sagesse, mais n’hésite pas à trancher. Tes relations en sortiront apaisées.",
+      "amour": "Ton besoin de justice en amour est enfin entendu.",
+      "travail": "Une décision importante se précise, respire avant de signer.",
+      "mantra": "J’équilibre sans sacrifier.",
+      "note": 5
+    },
+    {
+      "signe": "Scorpion",
+      "accroche": "Tes secrets sont des trésors",
+      "texte": "Balance te pousse à partager, mais à ta manière. Réfléchis bien avant de tout dire. Ce que tu caches pourrait devenir une force plus tard. Méfie-toi des confidences impulsives.",
+      "amour": "Ton intuition en amour est plus forte que les mots.",
+      "travail": "Une information confidentielle pourrait changer la donne.",
+      "mantra": "Je révèle ce que je choisis.",
+      "note": 3
+    },
+    {
+      "signe": "Sagittaire",
+      "accroche": "Ton aventure commence demain",
+      "texte": "L’énergie Balance te rappelle de peser le pour et le contre avant de sauter. Un voyage ou un nouveau départ est en vue, mais prépare-toi mentalement. L’enthousiasme seul ne suffira pas.",
+      "amour": "Ton partenaire adore ton côté explorateur, mais évite les promesses trop lourdes.",
+      "travail": "Une formation ou un déplacement pourrait tout changer.",
+      "mantra": "Je vois l’horizon avant de marcher.",
+      "note": 4
+    },
+    {
+      "signe": "Capricorne",
+      "accroche": "Ton ambition se concrétise",
+      "texte": "Balance te demande de lâcher prise sur les détails. Focus sur l’essentiel : ton travail et tes objectifs à long terme. Les efforts d’hier portent leurs fruits aujourd’hui.",
+      "amour": "Ton sérieux en amour inspire confiance et stabilité.",
+      "travail": "Une promotion ou une reconnaissance arrive, mais reste discret·e.",
+      "mantra": "Je construis sans compter les pierres.",
+      "note": 4
+    },
+    {
+      "signe": "Verseau",
+      "accroche": "Tes idées sont en orbite",
+      "texte": "La Balance t’invite à les ancrer. Présente tes projets de manière originale, mais assure-toi que ton audace a un sens. Les réseaux sociaux peuvent t’aider à toucher plus large.",
+      "amour": "Ton côté innovant attire des partenaires aussi libres que toi.",
+      "travail": "Une collaboration inattendue pourrait tout changer.",
+      "mantra": "Je connecte les idées folles.",
+      "note": 5
+    },
+    {
+      "signe": "Poissons",
+      "accroche": "Ton intuition est une boussole",
+      "texte": "Balance t’offre une clarté rare. Écoute ton cœur, mais vérifie aussi les faits. Tes rêves ont du sens aujourd’hui, mais reste réaliste. L’art et l’émotion sont tes alliés.",
+      "amour": "Ton empathie crée des liens profonds et durables.",
+      "travail": "Un projet créatif ou humanitaire pourrait te passionner.",
+      "mantra": "Je rêve, je crée, je vois.",
+      "note": 5
+    }
+  ],
+  "legende_finale": "La Lune en Cancer nous rappelle que les émotions sont nos guides. Et toi, quel signe résonne le plus avec ton énergie aujourd’hui ? #AstroliaDaily #BalanceVibes #LuneEnCancer\n\nCommente ASTRO pour recevoir ton mini-thème natal gratuit.\n\nAstrologie proposée à titre de divertissement et d'inspiration."
+}
