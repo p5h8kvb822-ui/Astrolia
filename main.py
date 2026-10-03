@@ -202,31 +202,42 @@ def appeler_gemini(prompt):
     raise AucunModele("BILAN DES MODELES GEMINI :\n" + "\n".join(bilan))
 
 
+MODELES_MISTRAL = ["mistral-small-latest", "open-mistral-nemo", "ministral-8b-latest",
+                   "mistral-medium-latest", "mistral-large-latest"]
+
+
 def appeler_mistral(prompt):
-    """Appelle Mistral ; en cas de limite de débit (429) ou d'erreur serveur, patiente puis réessaie."""
-    dernier = ""
-    for tentative in range(1, 7):
+    """Appelle Mistral ; si un modèle est limité (429), essaie le suivant, patiente et réessaie."""
+    force = os.getenv("LLM_MODEL")
+    modeles = ([force] if force else []) + [m for m in MODELES_MISTRAL if m != force]
+    bilan = []
+    for tentative in range(1, 11):
+        modele = modeles[(tentative - 1) % len(modeles)]
         r = requests.post(
             "https://api.mistral.ai/v1/chat/completions",
             headers={"Authorization": f"Bearer {os.environ['MISTRAL_API_KEY']}", "Content-Type": "application/json"},
-            json={"model": os.getenv("LLM_MODEL") or "mistral-small-latest",
+            json={"model": modele,
                   "messages": [{"role": "user", "content": prompt}],
                   "response_format": {"type": "json_object"}, "temperature": 0.9},
             timeout=120)
         if r.ok:
+            print(f"Modèle utilisé : {modele}")
             return r.json()["choices"][0]["message"]["content"]
-        dernier = f"Mistral {r.status_code} : {message_google(r)}"
-        if r.status_code in (429, 500, 502, 503, 504) and tentative < 6:
+        infos = {k: v for k, v in r.headers.items() if "ratelimit" in k.lower() or k.lower() == "retry-after"}
+        bilan.append(f"{modele} -> {r.status_code} : {message_google(r)} {infos if infos else ''}".strip())
+        print(bilan[-1])
+        if r.status_code in (401, 403):
+            break  # clé refusée : inutile d'insister
+        if r.status_code in (429, 500, 502, 503, 504) and tentative < 10:
             try:
                 attente = int(float(r.headers.get("Retry-After", "")))
             except ValueError:
                 attente = 0
-            attente = min(max(attente, 10 * tentative), 90)
-            print(f"{dernier} -> nouvelle tentative dans {attente} s ({tentative}/6)")
-            time.sleep(attente)
+            time.sleep(min(max(attente, 5), 30))
             continue
-        break
-    raise AucunModele(dernier)
+        if r.status_code not in (400, 404):
+            break
+    raise AucunModele("BILAN MISTRAL :\n" + "\n".join(bilan[-6:]))
 
 
 def appeler_ia(prompt):
