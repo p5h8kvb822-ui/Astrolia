@@ -203,16 +203,30 @@ def appeler_gemini(prompt):
 
 
 def appeler_mistral(prompt):
-    r = requests.post(
-        "https://api.mistral.ai/v1/chat/completions",
-        headers={"Authorization": f"Bearer {os.environ['MISTRAL_API_KEY']}", "Content-Type": "application/json"},
-        json={"model": os.getenv("LLM_MODEL") or "mistral-small-latest",
-              "messages": [{"role": "user", "content": prompt}],
-              "response_format": {"type": "json_object"}, "temperature": 0.9},
-        timeout=120)
-    if not r.ok:
-        raise AucunModele(f"Mistral {r.status_code} : {message_google(r)}")
-    return r.json()["choices"][0]["message"]["content"]
+    """Appelle Mistral ; en cas de limite de débit (429) ou d'erreur serveur, patiente puis réessaie."""
+    dernier = ""
+    for tentative in range(1, 7):
+        r = requests.post(
+            "https://api.mistral.ai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {os.environ['MISTRAL_API_KEY']}", "Content-Type": "application/json"},
+            json={"model": os.getenv("LLM_MODEL") or "mistral-small-latest",
+                  "messages": [{"role": "user", "content": prompt}],
+                  "response_format": {"type": "json_object"}, "temperature": 0.9},
+            timeout=120)
+        if r.ok:
+            return r.json()["choices"][0]["message"]["content"]
+        dernier = f"Mistral {r.status_code} : {message_google(r)}"
+        if r.status_code in (429, 500, 502, 503, 504) and tentative < 6:
+            try:
+                attente = int(float(r.headers.get("Retry-After", "")))
+            except ValueError:
+                attente = 0
+            attente = min(max(attente, 10 * tentative), 90)
+            print(f"{dernier} -> nouvelle tentative dans {attente} s ({tentative}/6)")
+            time.sleep(attente)
+            continue
+        break
+    raise AucunModele(dernier)
 
 
 def appeler_ia(prompt):
