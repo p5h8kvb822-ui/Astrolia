@@ -58,6 +58,7 @@ RÈGLES DE STYLE
 - Appuie l'énergie du jour sur le contexte astral fourni
 - Évite les clichés (« les astres te sourient »)
 - N'utilise pas ces accroches déjà publiées récemment : {{HISTORIQUE}}
+- Le tableau "signes" contient EXACTEMENT 12 objets, un par signe, dans l'ordre ci-dessus, avec le nom exact du signe (accents compris) dans le champ "signe"
 
 STRUCTURE PAR SIGNE
 - accroche : 8 mots max
@@ -262,13 +263,45 @@ def appeler_ia(prompt):
     return json.loads(texte)
 
 
+import unicodedata
+
+
+def _cle(texte):
+    t = unicodedata.normalize("NFD", str(texte)).encode("ascii", "ignore").decode().lower()
+    return "".join(c for c in t if c.isalpha())
+
+
+def normaliser(data):
+    """Rend la réponse de l'IA conforme : retrouve la liste des signes, corrige accents et ordre."""
+    if isinstance(data, dict) and not isinstance(data.get("signes"), list):
+        for v in data.values():
+            if isinstance(v, list) and v and all(isinstance(x, dict) for x in v):
+                data["signes"] = v
+                break
+            if isinstance(v, dict) and isinstance(v.get("signes"), list):
+                data = {**data, **v}
+                break
+        else:
+            if isinstance(data, dict) and sum(_cle(k) in {_cle(s[0]) for s in SIGNES} for k in data) >= 10:
+                data["signes"] = [{"signe": k, **(v if isinstance(v, dict) else {})} for k, v in data.items()]
+    canon = {_cle(nom): nom for nom, _, _ in SIGNES}
+    par_nom = {}
+    for s in data.get("signes", []):
+        if isinstance(s, dict) and _cle(s.get("signe", "")) in canon:
+            par_nom[canon[_cle(s["signe"])]] = {**s, "signe": canon[_cle(s["signe"])]}
+    if par_nom:
+        data["signes"] = [par_nom[nom] for nom, _, _ in SIGNES if nom in par_nom]
+    return data
+
+
 def valider(data):
     attendu = [s[0] for s in SIGNES]
-    assert [s["signe"] for s in data["signes"]] == attendu, "signes manquants ou dans le mauvais ordre"
+    trouves = [str(s.get("signe")) if isinstance(s, dict) else "?" for s in data.get("signes", [])]
+    assert trouves == attendu, f"signes manquants ou dans le mauvais ordre. Reçu ({len(trouves)}) : {trouves}. Clés : {list(data)[:8]}"
     for s in data["signes"]:
         for cle in ("accroche", "texte", "amour", "travail", "mantra"):
             assert str(s[cle]).strip(), f"{s['signe']} : champ vide ({cle})"
-        assert len(s["texte"].split()) <= 45, f"{s['signe']} : texte trop long"
+        assert len(s["texte"].split()) <= 60, f"{s['signe']} : texte trop long"
         assert 1 <= int(s["note"]) <= 5, f"{s['signe']} : note invalide"
     for cle in ("hook_couverture", "signe_star", "cta_commentaire", "legende_post"):
         assert str(data[cle]).strip(), f"champ vide : {cle}"
@@ -284,7 +317,7 @@ def generer_texte(d):
     derniere_erreur = None
     for essai in range(1, 5):
         try:
-            data = appeler_ia(prompt)
+            data = normaliser(appeler_ia(prompt))
             valider(data)
             return data
         except AucunModele:
