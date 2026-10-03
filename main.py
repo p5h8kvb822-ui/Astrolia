@@ -202,8 +202,24 @@ def appeler_gemini(prompt):
     raise AucunModele("BILAN DES MODELES GEMINI :\n" + "\n".join(bilan))
 
 
+def appeler_mistral(prompt):
+    r = requests.post(
+        "https://api.mistral.ai/v1/chat/completions",
+        headers={"Authorization": f"Bearer {os.environ['MISTRAL_API_KEY']}", "Content-Type": "application/json"},
+        json={"model": os.getenv("LLM_MODEL") or "mistral-small-latest",
+              "messages": [{"role": "user", "content": prompt}],
+              "response_format": {"type": "json_object"}, "temperature": 0.9},
+        timeout=120)
+    if not r.ok:
+        raise AucunModele(f"Mistral {r.status_code} : {message_google(r)}")
+    return r.json()["choices"][0]["message"]["content"]
+
+
 def appeler_ia(prompt):
-    fournisseur = os.getenv("LLM_PROVIDER", "gemini")
+    fournisseur = os.getenv("LLM_PROVIDER") or ("mistral" if os.getenv("MISTRAL_API_KEY") else "gemini")
+    if fournisseur == "mistral":
+        texte = appeler_mistral(prompt)
+        return json.loads(texte.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip())
     if fournisseur == "claude":
         r = requests.post(
             "https://api.anthropic.com/v1/messages",
